@@ -9,12 +9,11 @@ export default function ContactSection() {
     const [age, setAge] = useState("");
     const [gender, setGender] = useState("");
     const [phone, setPhone] = useState("");
-    const [email, setEmail] = useState("");
     const [appointmentDate, setAppointmentDate] = useState("");
     const [message, setMessage] = useState("");
+    const [success, setSuccess] = useState(false);
 
     const handleSubmit = async () => {
-
         if (!name || !phone) {
             alert("Please enter your name and phone number");
             return;
@@ -31,21 +30,23 @@ export default function ContactSection() {
                 age,
                 gender,
                 phone,
-                email,
                 appointmentDate,
                 message,
                 createdAt: new Date(),
             });
 
-            alert("Appointment request submitted successfully!");
+            setSuccess(true);
 
             setName("");
             setAge("");
             setGender("");
             setPhone("");
-            setEmail("");
             setAppointmentDate("");
             setMessage("");
+
+            setTimeout(() => {
+                setSuccess(false);
+            }, 5000);
         } catch (error) {
             console.error(error);
             alert("Something went wrong.");
@@ -55,23 +56,26 @@ export default function ContactSection() {
     return (
         <section
             id="contact"
-            className="bg-gradient-to-r from-blue-950 to-slate-900 text-white py-24"
+            className="bg-gradient-to-r from-blue-950 to-slate-900 text-white py-20"
         >
             <div className="max-w-6xl mx-auto px-6">
 
-                <h2 className="text-4xl font-bold mb-4">
-                    Book an Appointment
-                </h2>
+                {/* Heading */}
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                        Book an Appointment
+                    </h2>
 
-                <p className="text-lg text-gray-300 mb-12">
-                    Schedule a consultation with our neurology specialists.
-                </p>
+                    <p className="text-lg text-gray-300">
+                        Schedule a consultation with our neurology specialists.
+                    </p>
+                </div>
 
                 {/* Contact Cards */}
                 <div className="grid md:grid-cols-3 gap-6 mb-12">
 
-                    <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl">
-                        <h3 className="font-bold text-xl mb-2">
+                    <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                        <h3 className="font-bold text-xl mb-3">
                             📞 Phone
                         </h3>
 
@@ -80,8 +84,8 @@ export default function ContactSection() {
                         </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl">
-                        <h3 className="font-bold text-xl mb-2">
+                    <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                        <h3 className="font-bold text-xl mb-3">
                             📍 Location
                         </h3>
 
@@ -90,8 +94,8 @@ export default function ContactSection() {
                         </p>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl">
-                        <h3 className="font-bold text-xl mb-2">
+                    <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                        <h3 className="font-bold text-xl mb-3">
                             🕒 Hours
                         </h3>
 
@@ -102,10 +106,10 @@ export default function ContactSection() {
 
                 </div>
 
-                {/* Appointment Form Card */}
-                <div className="max-w-3xl mx-auto bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
+                {/* Form Card */}
+                <div className="max-w-3xl mx-auto bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-10 shadow-2xl">
 
-                    <h3 className="text-2xl font-bold mb-2">
+                    <h3 className="text-3xl font-bold mb-2">
                         Appointment Request
                     </h3>
 
@@ -113,16 +117,37 @@ export default function ContactSection() {
                         Fill in your details and our team will contact you shortly.
                     </p>
 
+                    {success && (
+                        <div className="bg-green-600 text-white p-4 rounded-xl mb-6">
+                            Appointment request submitted successfully.
+                            Our team will contact you soon.
+                        </div>
+                    )}
+
                     <div className="space-y-4">
 
-                        <input
-                            type="text"
-                            placeholder="Full Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full p-4 rounded-xl text-black"
-                        />
+                        {/* Name + Phone */}
+                        <div className="grid md:grid-cols-2 gap-4">
 
+                            <input
+                                type="text"
+                                placeholder="Full Name *"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+
+                            <input
+                                type="text"
+                                placeholder="Phone Number *"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+
+                        </div>
+
+                        {/* Age + Gender */}
                         <div className="grid md:grid-cols-2 gap-4">
 
                             <input
@@ -130,13 +155,13 @@ export default function ContactSection() {
                                 placeholder="Age"
                                 value={age}
                                 onChange={(e) => setAge(e.target.value)}
-                                className="w-full p-4 rounded-xl text-black"
+                                className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
 
                             <select
                                 value={gender}
                                 onChange={(e) => setGender(e.target.value)}
-                                className="w-full p-4 rounded-xl text-black"
+                                className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                             >
                                 <option value="">
                                     Select Gender
@@ -161,25 +186,10 @@ export default function ContactSection() {
 
                         </div>
 
-                        <input
-                            type="text"
-                            placeholder="Phone Number"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="w-full p-4 rounded-xl text-black"
-                        />
-
-                        <input
-                            type="email"
-                            placeholder="Email Address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full p-4 rounded-xl text-black"
-                        />
-
+                        {/* Appointment Date */}
                         <div>
 
-                            <label className="block mb-2 text-sm text-gray-300">
+                            <label className="block text-sm text-gray-300 mb-2">
                                 Preferred Appointment Date
                             </label>
 
@@ -189,27 +199,41 @@ export default function ContactSection() {
                                 onChange={(e) =>
                                     setAppointmentDate(e.target.value)
                                 }
-                                className="w-full p-4 rounded-xl text-black"
+                                className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
 
                             <p className="text-sm text-gray-400 mt-2">
-                                Select your preferred consultation date. Our
-                                team will confirm availability.
+                                Select your preferred consultation date.
+                                Our team will confirm availability.
                             </p>
 
                         </div>
 
+                        {/* Concern */}
                         <textarea
                             rows={4}
                             placeholder="Describe your concern"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            className="w-full p-4 rounded-xl text-black"
+                            className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         />
 
+                        {/* Button */}
                         <button
                             onClick={handleSubmit}
-                            className="bg-blue-500 hover:bg-blue-600 px-8 py-4 rounded-full font-semibold transition"
+                            className="
+                                bg-gradient-to-r
+                                from-blue-500
+                                to-cyan-500
+                                hover:scale-105
+                                transition
+                                duration-300
+                                px-8
+                                py-4
+                                rounded-full
+                                font-semibold
+                                shadow-lg
+                            "
                         >
                             Schedule Appointment
                         </button>
