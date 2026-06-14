@@ -5,7 +5,6 @@ import AboutDoctor from "../components/AboutDoctor";
 import Conditions from "../components/Conditions";
 import WhyChooseUs from "../components/WhyChooseUs";
 import Testimonials from "../components/Testimonials";
-import AppointmentForm from "../components/AppointmentForm";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
@@ -29,7 +28,6 @@ export default function Neuro1Page() {
 
             <Testimonials />
 
-            <AppointmentForm />
 
             <ContactSection />
 
