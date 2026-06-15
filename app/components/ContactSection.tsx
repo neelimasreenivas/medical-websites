@@ -32,6 +32,7 @@ export default function ContactSection() {
                 phone,
                 appointmentDate,
                 message,
+                status: "Pending",
                 createdAt: new Date(),
             });
 
