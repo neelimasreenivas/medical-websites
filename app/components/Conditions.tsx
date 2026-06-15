@@ -56,14 +56,6 @@ const conditions = [
 export default function Conditions() {
     const [flippedCard, setFlippedCard] = useState<number | null>(null);
 
-    const handleFlip = (index: number) => {
-        if (flippedCard === index) {
-            setFlippedCard(null);
-        } else {
-            setFlippedCard(index);
-        }
-    };
-
     return (
         <section
             id="conditions"
@@ -71,38 +63,85 @@ export default function Conditions() {
         >
             <div className="max-w-7xl mx-auto">
 
-                <h2 className="text-5xl font-bold mb-16">
+                <h2 className="text-5xl font-bold text-black mb-16">
                     Conditions Treated
                 </h2>
 
                 <div className="grid md:grid-cols-3 gap-8">
 
                     {conditions.map((condition, index) => (
+
                         <div
                             key={index}
-                            className="h-72 perspective cursor-pointer"
-                            onClick={() => handleFlip(index)}
+                            className="h-72 cursor-pointer"
+                            style={{ perspective: "1000px" }}
+                            onClick={() =>
+                                setFlippedCard(
+                                    flippedCard === index ? null : index
+                                )
+                            }
                         >
+
                             <div
-                                className={`relative w-full h-full duration-700 transform-style-preserve-3d ${flippedCard === index ? "rotate-y-180" : ""
-                                    }`}
+                                className="relative w-full h-full duration-700"
+                                style={{
+                                    transformStyle: "preserve-3d",
+                                    transition: "transform 0.7s",
+                                    transform:
+                                        flippedCard === index
+                                            ? "rotateY(180deg)"
+                                            : "rotateY(0deg)",
+                                }}
                             >
 
-                                {/* Front */}
-                                <div className="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-lg p-10 flex flex-col justify-center items-center">
+                                {/* Front Side */}
+                                <div
+                                    className="
+                                        absolute
+                                        inset-0
+                                        bg-white
+                                        rounded-3xl
+                                        shadow-lg
+                                        p-10
+                                        flex
+                                        flex-col
+                                        justify-center
+                                        items-center
+                                    "
+                                    style={{
+                                        backfaceVisibility: "hidden",
+                                    }}
+                                >
 
                                     <div className="text-6xl mb-6">
                                         {condition.icon}
                                     </div>
 
-                                    <h3 className="text-3xl font-bold text-center">
+                                    <h3 className="text-3xl font-bold text-center text-black">
                                         {condition.title}
                                     </h3>
 
                                 </div>
 
-                                {/* Back */}
-                                <div className="absolute inset-0 rotate-y-180 backface-hidden bg-blue-900 text-white rounded-3xl shadow-lg p-6 flex flex-col justify-center">
+                                {/* Back Side */}
+                                <div
+                                    className="
+                                        absolute
+                                        inset-0
+                                        bg-blue-900
+                                        text-white
+                                        rounded-3xl
+                                        shadow-lg
+                                        p-6
+                                        flex
+                                        flex-col
+                                        justify-center
+                                    "
+                                    style={{
+                                        backfaceVisibility: "hidden",
+                                        transform: "rotateY(180deg)",
+                                    }}
+                                >
 
                                     <h3 className="text-xl font-bold mb-4">
                                         {condition.title}
@@ -131,7 +170,9 @@ export default function Conditions() {
                                 </div>
 
                             </div>
+
                         </div>
+
                     ))}
 
                 </div>
