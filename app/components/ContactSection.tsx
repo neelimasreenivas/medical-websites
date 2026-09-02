@@ -4,32 +4,45 @@ import { useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-export default function ContactSection() {
+interface ContactSectionProps {
+    clinicName?: string;
+    phone?: string;
+    location?: string;
+    hours?: string;
+}
+
+export default function ContactSection({
+    clinicName = "Anu Neuro Care",
+    phone = "+91 9876543210",
+    location = "Hyderabad, Telangana",
+    hours = "Mon - Sat | 9 AM - 7 PM",
+}: ContactSectionProps) {
     const [name, setName] = useState("");
     const [age, setAge] = useState("");
     const [gender, setGender] = useState("");
-    const [phone, setPhone] = useState("");
+    const [userPhone, setUserPhone] = useState("");
     const [appointmentDate, setAppointmentDate] = useState("");
     const [message, setMessage] = useState("");
     const [success, setSuccess] = useState(false);
 
     const handleSubmit = async () => {
-        if (!name || !phone) {
+        if (!name || !userPhone) {
             alert("Please enter your name and phone number");
             return;
         }
 
-        if (phone.length < 10) {
+        if (userPhone.length < 10) {
             alert("Please enter a valid phone number");
             return;
         }
 
         try {
             await addDoc(collection(db, "appointments"), {
+                clinic: clinicName,
                 name,
                 age,
                 gender,
-                phone,
+                phone: userPhone,
                 appointmentDate,
                 message,
                 status: "Pending",
@@ -41,7 +54,7 @@ export default function ContactSection() {
             setName("");
             setAge("");
             setGender("");
-            setPhone("");
+            setUserPhone("");
             setAppointmentDate("");
             setMessage("");
 
@@ -68,7 +81,7 @@ export default function ContactSection() {
                     </h2>
 
                     <p className="text-lg text-gray-300">
-                        Schedule a consultation with our neurology specialists.
+                        Schedule a consultation with our neurology specialists at {clinicName}.
                     </p>
                 </div>
 
@@ -81,7 +94,7 @@ export default function ContactSection() {
                         </h3>
 
                         <p className="text-gray-200">
-                            +91 9876543210
+                            {phone}
                         </p>
                     </div>
 
@@ -91,7 +104,7 @@ export default function ContactSection() {
                         </h3>
 
                         <p className="text-gray-200">
-                            Hyderabad, Telangana
+                            {location}
                         </p>
                     </div>
 
@@ -101,7 +114,7 @@ export default function ContactSection() {
                         </h3>
 
                         <p className="text-gray-200">
-                            Mon - Sat | 9 AM - 7 PM
+                            {hours}
                         </p>
                     </div>
 
@@ -141,8 +154,8 @@ export default function ContactSection() {
                             <input
                                 type="text"
                                 placeholder="Phone Number *"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
+                                value={userPhone}
+                                onChange={(e) => setUserPhone(e.target.value)}
                                 className="w-full p-4 rounded-xl bg-white text-black border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                             />
 
