@@ -4,7 +4,7 @@ import Stats from "../components/Stats";
 import AboutDoctor from "../components/AboutDoctor";
 import Conditions from "../components/neuro2/Conditions2";
 import WhyChooseUs2 from "../components/neuro2/WhyChooseUs2";
-import Testimonials from "../components/Testimonials";
+import Testimonials2 from "../components/neuro2/Testimonials2";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
@@ -64,7 +64,7 @@ export default function Neuro2Page() {
 
             <WhyChooseUs2 />
 
-            <Testimonials testimonials={sharadaTestimonials} />
+            <Testimonials2 />
 
             {/* Softened Gold Contact Section */}
             <ContactSection
