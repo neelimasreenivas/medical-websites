@@ -1,318 +1,251 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { auth, db } from "@/lib/firebase";
-import {
-    onAuthStateChanged,
-    signOut,
-} from "firebase/auth";
-import { useRouter } from "next/navigation";
-import {
-    collection,
-    getDocs,
-    deleteDoc,
-    doc,
-    updateDoc,
-} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
-export default function AdminPage() {
-    const [appointments, setAppointments] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+interface Appointment {
+    id: string;
+    clinic?: string;
+    name: string;
+    phone: string;
+    age?: string;
+    gender?: string;
+    appointmentDate?: string;
+    message?: string;
+    status?: string;
+    createdAt?: any;
+}
 
-    const router = useRouter();
+export default function AdminDashboard() {
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [selectedClinic, setSelectedClinic] = useState<string>("All");
+    const [selectedStatus, setSelectedStatus] = useState<string>("All");
+    const [loading, setLoading] = useState<boolean>(true);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(
-            auth,
-            (user) => {
-                if (!user) {
-                    router.push("/login");
-                } else {
-                    setLoading(false);
-                }
-            }
-        );
-
-        return () => unsubscribe();
-    }, [router]);
-
-    const loadAppointments = async () => {
+    const fetchAppointments = async () => {
+        setLoading(true);
         try {
-            const querySnapshot = await getDocs(
-                collection(db, "appointments")
-            );
-
-            const data = querySnapshot.docs
-                .map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }))
-                .reverse();
-
-            setAppointments(data);
+            const querySnapshot = await getDocs(collection(db, "appointments"));
+            const list: Appointment[] = [];
+            querySnapshot.forEach((docSnap) => {
+                list.push({
+                    id: docSnap.id,
+                    ...docSnap.data(),
+                } as Appointment);
+            });
+            setAppointments(list);
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching appointments:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (!loading) {
-            loadAppointments();
+        fetchAppointments();
+    }, []);
+
+    const handleStatusChange = async (id: string, newStatus: string) => {
+        try {
+            await updateDoc(doc(db, "appointments", id), {
+                status: newStatus,
+            });
+            setAppointments((prev) =>
+                prev.map((item) =>
+                    item.id === id ? { ...item, status: newStatus } : item
+                )
+            );
+        } catch (error) {
+            console.error("Error updating status:", error);
         }
-    }, [loading]);
+    };
 
     const handleDelete = async (id: string) => {
-        const confirmDelete = confirm(
-            "Delete this appointment?"
-        );
-
-        if (!confirmDelete) return;
-
+        if (!confirm("Are you sure you want to delete this appointment?")) return;
         try {
-            await deleteDoc(
-                doc(db, "appointments", id)
-            );
-
-            loadAppointments();
+            await deleteDoc(doc(db, "appointments", id));
+            setAppointments((prev) => prev.filter((item) => item.id !== id));
         } catch (error) {
-            console.error(error);
-            alert("Failed to delete appointment");
+            console.error("Error deleting appointment:", error);
         }
     };
 
-    const handleStatusChange = async (
-        id: string,
-        status: string
-    ) => {
-        try {
-            await updateDoc(
-                doc(db, "appointments", id),
-                {
-                    status,
-                }
-            );
+    // Filter Logic
+    const filteredAppointments = appointments.filter((app) => {
+        const clinicMatch =
+            selectedClinic === "All" ||
+            (app.clinic && app.clinic.toLowerCase() === selectedClinic.toLowerCase());
 
-            loadAppointments();
-        } catch (error) {
-            console.error(error);
-        }
-    };
+        const statusMatch =
+            selectedStatus === "All" ||
+            (app.status || "Pending").toLowerCase() === selectedStatus.toLowerCase();
 
-    const handleLogout = async () => {
-        await signOut(auth);
-        router.push("/login");
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p>Loading...</p>
-            </div>
-        );
-    }
+        return clinicMatch && statusMatch;
+    });
 
     return (
-        <div className="min-h-screen bg-slate-100 p-8">
+        <div className="min-h-screen bg-slate-100 p-6 md:p-10 font-sans">
+            <div className="max-w-7xl mx-auto">
 
-            <div className="flex justify-between items-center mb-8">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900">
+                            Appointments Dashboard
+                        </h1>
+                        <p className="text-slate-600 text-sm mt-1">
+                            Manage patient inquiries across all clinic locations
+                        </p>
+                    </div>
 
-                <h1 className="text-4xl font-bold">
-                    Admin Dashboard
-                </h1>
+                    <button
+                        onClick={fetchAppointments}
+                        className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-800 transition"
+                    >
+                        🔄 Refresh Data
+                    </button>
+                </div>
 
-                <button
-                    onClick={handleLogout}
-                    className="
-                        bg-red-500
-                        hover:bg-red-600
-                        text-white
-                        px-6
-                        py-3
-                        rounded-xl
-                    "
-                >
-                    Logout
-                </button>
+                {/* Filters */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row gap-6">
 
-            </div>
+                    {/* Clinic Filter */}
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                            Filter by Clinic
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                            {["All", "Anu Neuro Care", "Sharada Neuro"].map((clinic) => (
+                                <button
+                                    key={clinic}
+                                    onClick={() => setSelectedClinic(clinic)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${selectedClinic === clinic
+                                            ? "bg-slate-900 text-white shadow-sm"
+                                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                        }`}
+                                >
+                                    {clinic}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-            <div className="mb-6">
-
-                <div
-                    className="
-                        bg-blue-600
-                        text-white
-                        p-6
-                        rounded-2xl
-                        shadow-lg
-                        w-72
-                    "
-                >
-                    <p className="text-sm opacity-80">
-                        Total Appointments
-                    </p>
-
-                    <h2 className="text-4xl font-bold">
-                        {appointments.length}
-                    </h2>
+                    {/* Status Filter */}
+                    <div className="md:w-64">
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                            Filter by Status
+                        </label>
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-sm font-medium focus:outline-none"
+                        >
+                            <option value="All">All Statuses</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
 
                 </div>
 
-            </div>
+                {/* Appointments Table */}
+                {loading ? (
+                    <div className="bg-white p-12 text-center rounded-2xl shadow-sm text-slate-500">
+                        Loading appointments...
+                    </div>
+                ) : filteredAppointments.length === 0 ? (
+                    <div className="bg-white p-12 text-center rounded-2xl shadow-sm text-slate-500">
+                        No appointments found matching the selected filters.
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-sm">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-xs tracking-wider">
+                                        <th className="p-4">Clinic</th>
+                                        <th className="p-4">Patient</th>
+                                        <th className="p-4">Contact</th>
+                                        <th className="p-4">Pref. Date</th>
+                                        <th className="p-4">Concern</th>
+                                        <th className="p-4">Status</th>
+                                        <th className="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {filteredAppointments.map((app) => (
+                                        <tr key={app.id} className="hover:bg-slate-50/50 transition">
+                                            {/* Clinic Tag */}
+                                            <td className="p-4 font-semibold">
+                                                <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-bold ${app.clinic === "Sharada Neuro"
+                                                        ? "bg-emerald-100 text-emerald-800"
+                                                        : "bg-blue-100 text-blue-800"
+                                                    }`}>
+                                                    {app.clinic || "Anu Neuro Care"}
+                                                </span>
+                                            </td>
 
-            <div className="bg-white rounded-2xl shadow-lg p-6 overflow-x-auto">
+                                            {/* Patient Info */}
+                                            <td className="p-4">
+                                                <div className="font-bold text-slate-900">{app.name}</div>
+                                                <div className="text-xs text-slate-500">
+                                                    {app.age ? `${app.age} yrs` : ""} {app.gender ? `• ${app.gender}` : ""}
+                                                </div>
+                                            </td>
 
-                <table className="w-full">
+                                            {/* Phone */}
+                                            <td className="p-4 text-slate-700 font-medium">
+                                                {app.phone}
+                                            </td>
 
-                    <thead>
+                                            {/* Date */}
+                                            <td className="p-4 text-slate-600">
+                                                {app.appointmentDate || "N/A"}
+                                            </td>
 
-                        <tr className="border-b text-left">
+                                            {/* Message */}
+                                            <td className="p-4 text-slate-500 max-w-xs truncate">
+                                                {app.message || "—"}
+                                            </td>
 
-                            <th className="p-3">Name</th>
+                                            {/* Status Selector */}
+                                            <td className="p-4">
+                                                <select
+                                                    value={app.status || "Pending"}
+                                                    onChange={(e) => handleStatusChange(app.id, e.target.value)}
+                                                    className={`px-2.5 py-1 rounded-lg text-xs font-bold focus:outline-none border border-slate-200 ${app.status === "Confirmed"
+                                                            ? "bg-amber-50 text-amber-700"
+                                                            : app.status === "Completed"
+                                                                ? "bg-emerald-50 text-emerald-700"
+                                                                : "bg-slate-100 text-slate-700"
+                                                        }`}
+                                                >
+                                                    <option value="Pending">Pending</option>
+                                                    <option value="Confirmed">Confirmed</option>
+                                                    <option value="Completed">Completed</option>
+                                                </select>
+                                            </td>
 
-                            <th className="p-3">Phone</th>
-
-                            <th className="p-3">Age</th>
-
-                            <th className="p-3">Gender</th>
-
-                            <th className="p-3">Date</th>
-
-                            <th className="p-3">Status</th>
-
-                            <th className="p-3">Concern</th>
-
-                            <th className="p-3">Actions</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {appointments.map((appointment) => (
-
-                            <tr
-                                key={appointment.id}
-                                className="border-b"
-                            >
-
-                                <td className="p-3">
-                                    {appointment.name}
-                                </td>
-
-                                <td className="p-3">
-                                    {appointment.phone}
-                                </td>
-
-                                <td className="p-3">
-                                    {appointment.age}
-                                </td>
-
-                                <td className="p-3">
-                                    {appointment.gender}
-                                </td>
-
-                                <td className="p-3">
-                                    {appointment.appointmentDate}
-                                </td>
-
-                                <td className="p-3">
-
-                                    <select
-                                        value={
-                                            appointment.status ||
-                                            "Pending"
-                                        }
-                                        onChange={(e) =>
-                                            handleStatusChange(
-                                                appointment.id,
-                                                e.target.value
-                                            )
-                                        }
-                                        className="
-                                            border
-                                            rounded-lg
-                                            px-3
-                                            py-2
-                                        "
-                                    >
-                                        <option value="Pending">
-                                            Pending
-                                        </option>
-
-                                        <option value="Contacted">
-                                            Contacted
-                                        </option>
-
-                                        <option value="Confirmed">
-                                            Confirmed
-                                        </option>
-
-                                        <option value="Completed">
-                                            Completed
-                                        </option>
-
-                                    </select>
-
-                                </td>
-
-                                <td className="p-3">
-                                    {appointment.message}
-                                </td>
-
-                                <td className="p-3">
-
-                                    <div className="flex gap-2">
-
-                                        <a
-                                            href={`https://wa.me/91${appointment.phone}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="
-                                                bg-green-500
-                                                hover:bg-green-600
-                                                text-white
-                                                px-3
-                                                py-2
-                                                rounded-lg
-                                            "
-                                        >
-                                            WhatsApp
-                                        </a>
-
-                                        <button
-                                            onClick={() =>
-                                                handleDelete(
-                                                    appointment.id
-                                                )
-                                            }
-                                            className="
-                                                bg-red-500
-                                                hover:bg-red-600
-                                                text-white
-                                                px-3
-                                                py-2
-                                                rounded-lg
-                                            "
-                                        >
-                                            Delete
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-                        ))}
-
-                    </tbody>
-
-                </table>
+                                            {/* Action Delete */}
+                                            <td className="p-4 text-right">
+                                                <button
+                                                    onClick={() => handleDelete(app.id)}
+                                                    className="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50 transition"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
             </div>
-
         </div>
     );
 }
