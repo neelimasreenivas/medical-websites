@@ -71,18 +71,27 @@ export default function AdminDashboard() {
         }
     };
 
-    // Filter Logic
+    // Safe Filter Logic
     const filteredAppointments = appointments.filter((app) => {
+        const rawClinic = app.clinic || "Anu Neuro Care";
+
         const clinicMatch =
             selectedClinic === "All" ||
-            (app.clinic && app.clinic.toLowerCase() === selectedClinic.toLowerCase());
+            rawClinic.toLowerCase().trim() === selectedClinic.toLowerCase().trim();
 
         const statusMatch =
             selectedStatus === "All" ||
-            (app.status || "Pending").toLowerCase() === selectedStatus.toLowerCase();
+            (app.status || "Pending").toLowerCase().trim() === selectedStatus.toLowerCase().trim();
 
         return clinicMatch && statusMatch;
     });
+
+    const clinicList = [
+        "All",
+        "Anu Neuro Care",
+        "Sharada Neuro",
+        "Genuderm Skin & Hair Clinic"
+    ];
 
     return (
         <div className="min-h-screen bg-slate-100 p-6 md:p-10 font-sans">
@@ -116,7 +125,7 @@ export default function AdminDashboard() {
                             Filter by Clinic
                         </label>
                         <div className="flex flex-wrap gap-2">
-                            {["All", "Anu Neuro Care", "Sharada Neuro"].map((clinic) => (
+                            {clinicList.map((clinic) => (
                                 <button
                                     key={clinic}
                                     onClick={() => setSelectedClinic(clinic)}
@@ -181,7 +190,9 @@ export default function AdminDashboard() {
                                             <td className="p-4 font-semibold">
                                                 <span className={`inline-block px-2.5 py-1 rounded-md text-xs font-bold ${app.clinic === "Sharada Neuro"
                                                         ? "bg-emerald-100 text-emerald-800"
-                                                        : "bg-blue-100 text-blue-800"
+                                                        : app.clinic === "Genuderm Skin & Hair Clinic"
+                                                            ? "bg-rose-100 text-rose-800"
+                                                            : "bg-blue-100 text-blue-800"
                                                     }`}>
                                                     {app.clinic || "Anu Neuro Care"}
                                                 </span>
