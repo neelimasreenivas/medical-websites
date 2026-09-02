@@ -2,12 +2,13 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Stats from "../components/Stats";
 import AboutDoctor from "../components/AboutDoctor";
-import Conditions from "../components/Conditions";
-import WhyChooseUs from "../components/WhyChooseUs";
+import Conditions from "../components/neuro2/Conditions2";
+import WhyChooseUs2 from "../components/neuro2/WhyChooseUs2";
 import Testimonials from "../components/Testimonials";
 import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/WhatsAppButton";
+import Conditions2 from "../components/neuro2/Conditions2";
 
 const sharadaTestimonials = [
     {
@@ -59,9 +60,9 @@ export default function Neuro2Page() {
                 imageUrl="https://images.unsplash.com/photo-1559839734-2b71ea197ec2"
             />
 
-            <Conditions />
+            <Conditions2 />
 
-            <WhyChooseUs />
+            <WhyChooseUs2 />
 
             <Testimonials testimonials={sharadaTestimonials} />
 
